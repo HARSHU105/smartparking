@@ -1,5 +1,5 @@
 package com.example.loginactivity;
 
 public class Unit {
-    public static final Object SECONDS = ;
+    public static final Object SECONDS = 10;
 }
