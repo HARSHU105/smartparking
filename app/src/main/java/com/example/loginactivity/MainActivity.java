@@ -1,9 +1,11 @@
 package com.example.loginactivity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,21 +13,32 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.auth.PhoneAuthProvider.OnVerificationStateChangedCallbacks;
 import com.hbb20.CountryCodePicker;
+
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView alert;
+//    TextView alert;
     TextView alert1;
     CountryCodePicker ccp;
     EditText inputNumber;
     Button btnGenerate;
     ProgressBar progressBar;
     FirebaseAuth mAuth;
-    String.Fullnumber;
+    String Fullnumber;
 
 
     @Override
@@ -33,14 +46,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        alert=findViewById(R.id.alert);
+//        alert=findViewById(R.id.alert);
         alert1=findViewById(R.id.alert1);
         ccp=findViewById(R.id.ccp);
         inputNumber=findViewById(R.id.inputNumber);
         btnGenerate=findViewById(R.id.btnGenerate);
         progressBar=findViewById(R.id.progressBar);
         progressBar.setVisibility(View.GONE);
-        alert.setVisibility(View.GONE);
+//        alert.setVisibility(View.GONE);
         alert1.setVisibility(View.GONE);
         mAuth=FirebaseAuth.getInstance();
 
@@ -49,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-               String Number=inputNumber.getText().toString();
+               number = inputNumber.getText().toString();
                if (number.length()==0)
                {
                    Toast.makeText(MainActivity.this, "Please Enter Correct Number", Toast.LENGTH_SHORT).show();
@@ -64,40 +77,33 @@ public class MainActivity extends AppCompatActivity {
             }
 
             private void AttemptAuth(String fullName) {
-                FullNumber=fullName;
+                Fullnumber=fullName;
                 progressBar.setVisibility(View.VISIBLE);
-                alert.setText("Please Wait");
-                alert.setVisibility(View.VISIBLE);
+                alert1.setText("Please Wait");
+                alert1.setVisibility(View.VISIBLE);
 
 
                 PhoneAuthOptions options =
                         PhoneAuthOptions.newBuilder(mAuth)
-                                .setPhoneNumber(fullName)       // Phone number to verify
-                                .setTimeout(60L, Time
-                                        Unit.SECONDS) // Timeout and unit
-                                .setActivity(this)                 // Activity (for callback binding)
+                                .setPhoneNumber(Fullnumber)       // Phone number to verify
+                                .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
+                                .setActivity(MainActivity.this)                 // Activity (for callback binding)
                                 .setCallbacks(mCallbacks)          // OnVerificationStateChangedCallbacks
                                 .build();
                 PhoneAuthProvider.verifyPhoneNumber(options);
 
             }
-           private PhoneAuthProvider mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+          private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
                 @Override
                 public void onVerificationCompleted(PhoneAuthCredential credential) {
-                  SendToHomeActivity();
+
 
                     Object onVerificationCompleted;
-                    Log.d("TAG, "onVerificationCompleted:" + credential);
+                    Log.d("TAG", "onVerificationCompleted:" + credential);
 
                     signInWithPhoneAuthCredential(credential);
                 }
-
-               private void SendToHomeActivity() {
-                   Intent intent=new Intent(MainActivity.this,HomeActivity.class);
-                   startActivity(intent);
-                   finish();
-               }
 
                @Override
                 public void onVerificationFailed(FirebaseException e) {
@@ -134,13 +140,13 @@ public class MainActivity extends AppCompatActivity {
             };
             private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
                 mAuth.signInWithCredential(credential)
-                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        .addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
                                     Log.d("TAG", "signInWithCredential:success");
-
+                                    SendToHomeActivity();
                                     FirebaseUser user = task.getResult().getUser();
                                     // ...
                                 } else {
@@ -151,9 +157,14 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             }
+                            private void SendToHomeActivity() {
+                                Intent intent=new Intent(MainActivity.this,HomeActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
                         });
-            }
-        };
 
+            }
+        });
     }
 }
